@@ -10,27 +10,29 @@ Package maintainers will be able to publish JavaScript files to NPM with this fo
 
 Format is optimized for parsing in JavaScript, not for human readability.
 
-### Constants
+### Markers
 
-#### Markers
-
-Examples are using constant names instead of values for readability. The end format will use the values.
+Examples are using constant names instead of values for readability within the spec. The resulting format will use their values.
 
 ```js
 const RULE_START = 0
-const RULE_TYPE = 1
-const RULE_END = 2
-const SELECTOR = 3
-const SCOPED = 4
-const PROPERTY = 5
-const VALUE = 6
-const REF = 7
+const RULE_END = 1
+const SELECTOR = 2
+const NAME = 3
+const PROPERTY = 4
+const VALUE = 5
+const PARENT_SELECTOR = 6
+const SPACE = 7
 const CONDITION = 8
 ```
 
-#### Rule types
+#### RULE_START
 
-Copied from https://wiki.csswg.org/spec/cssom-constants
+Denotes the beginning of a rule, has a rule type.
+
+`[RULE_START, RULE_TYPE]`
+
+All rule types from https://wiki.csswg.org/spec/cssom-constants
 
 ```
 1 STYLE_RULE CSSOM
@@ -52,6 +54,56 @@ Copied from https://wiki.csswg.org/spec/cssom-constants
 17 CUSTOM_MEDIA_RULE mediaqueries
 ```
 
+#### RULE_END
+
+End of a rule.
+
+#### SELECTOR
+
+Denotes a selector or selector compound.
+
+Selector compound e.g. `.foo.bar` => `[SELECTOR, '.foo', '.bar']`
+
+Multiple classes e.g. `.foo .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
+
+#### NAME
+
+Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded global class names. Consumer library will generate a selector for the rule and user can access it by name.
+We rely on the JavaScript module scope. Name should be unique within that module scope.
+
+E.g. `[NAME, 'bar']`
+
+#### PROPERTY
+
+Denotes a property name e.g.: `[PROPERTY, 'color']`.
+
+#### VALUE
+
+Denotes a property value e.g.: `[VALUE, 'red']`.
+
+Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
+
+#### PARENT_SELECTOR
+
+Denotes a reference to the selector of the parent rule. Only useful for nesting.
+
+E.g.: `&:hover` => `[SELECTOR, PARENT_SELECTOR, ':hover']`
+
+#### SPACE
+
+Denotes a space.
+
+E.g.: `& .foo` => `[SELECTOR, PARENT_SELECTOR, SPACE, '.foo']`
+
+#### CONDITION
+
+Denotes conditions for conditional rules.
+
+E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
+
+
+## Examples
+
 ### Global tag selector
 
 ```css
@@ -62,8 +114,7 @@ body {
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
+  [RULE_START, 1],
     [SELECTOR, 'body'],
     [PROPERTY, 'color'],
     [VALUE, 'red']
@@ -81,8 +132,7 @@ body, .foo {
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
+  [RULE_START, 1],
     [SELECTOR, 'body'],
     [SELECTOR, '.foo'],
     [PROPERTY, 'color'],
@@ -95,18 +145,17 @@ body, .foo {
 
 ```css
 .foo {
-  border: 1px solid red, 1px solid green
+  border-color: red, green
 }
 ```
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
+  [RULE_START, 1],
     [SELECTOR, '.foo'],
     [PROPERTY, 'border'],
-    [VALUE, '1px solid red'],
-    [VALUE, '1px solid green'],
+    [VALUE, 'red'],
+    [VALUE, 'green'],
   [RULE_END]
 ]
 ```
@@ -122,8 +171,7 @@ body, .foo {
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
+  [RULE_START, 1],
     [SELECTOR, '.foo'],
     [PROPERTY, 'color'],
     [VALUE, 'red'],
@@ -133,7 +181,7 @@ body, .foo {
 ]
 ```
 
-### Media rules
+### Conditionals
 
 ```css
 @media all {
@@ -145,8 +193,7 @@ body, .foo {
 
 ```js
 [
-  [RULE_START],
-  [RULE_TYPE, 4],
+  [RULE_START, 1],
   [CONDITION, 'all'],
     [RULE_START],
       [RULE_TYPE, 1],
@@ -171,21 +218,46 @@ body, .foo {
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
+  [RULE_START, 1],
     [SELECTOR, '.foo'],
     [PROPERTY, 'color'],
     [VALUE, 'red'],
-    [RULE_START],
-      [SELECTOR, REF, ':hover'],
+    [RULE_START, 1],
+      [SELECTOR, PARENT_SELECTOR, ':hover'],
       [PROPERTY, 'color'],
-      [VALUE, 'red'],
+      [VALUE, 'green'],
     [RULE_END],
   [RULE_END]
 ]
 ```
 
-### Scoped class name
+### Nesting with a compound selector and regular selector
+
+```css
+.foo {
+  color: red;
+  &.bar.baz .bla {
+    color: green;
+  }
+}
+```
+
+```js
+[
+  [RULE_START, 1],
+    [SELECTOR, '.foo'],
+    [PROPERTY, 'color'],
+    [VALUE, 'red'],
+    [RULE_START, 1],
+      [SELECTOR, PARENT_SELECTOR, '.bar', '.baz', SPACE, '.bla'],
+      [PROPERTY, 'color'],
+      [VALUE, 'green'],
+    [RULE_END],
+  [RULE_END]
+]
+```
+
+### Scoping or named rules
 
 ```css
 .foo-123456 {
@@ -195,9 +267,8 @@ body, .foo {
 
 ```js
 [
-  [RULE_START],
-    [RULE_TYPE, 1],
-    [SELECTOR, SCOPED, '.foo'],
+  [RULE_START, 1],
+    [NAME, 'foo'],
     [PROPERTY, 'color'],
     [VALUE, 'red']
   [RULE_END]
