@@ -215,8 +215,7 @@ body, .foo {
 [
   [RULE_START, 1],
   [CONDITION, 'all'],
-    [RULE_START],
-      [RULE_TYPE, 1],
+    [RULE_START, 1],
       [SELECTOR, '.foo'],
       [PROPERTY, 'color'],
       [VALUE, 'red'],
