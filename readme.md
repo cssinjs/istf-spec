@@ -28,6 +28,7 @@ const SUBSEQUENT_SIBLING_COMBINATOR = 9
 const PROPERTY = 10
 const VALUE = 11
 const CONDITION = 12
+const FUNCTION = 13
 ```
 
 #### Rule start
@@ -110,6 +111,16 @@ Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, '
 Marker `CONDITION` specifies a condition for conditional rules.
 
 E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
+
+#### Function
+
+Marker `FUNCTION` specifies [functional pseudo class](https://drafts.csswg.org/selectors/#functional-pseudo-class) as well as [functional notation](https://drafts.csswg.org/css-values-4/#functional-notation).
+
+After the FUNCTION marker follows the function name and each argument as a separate entry: `[FUNCTION, {NAME}, {ARG0}, {ARG1}, ...]`
+
+Functional pseudo class e.g. `.foo:matches(:hover, :focus)` => `[SELECTOR, '.foo', [FUNCTION, ':matches', ':hover', ':focus']]`
+
+Functional value notation e.g.: `color: rgb(100, 200, 50)` => `[PROPERTY, 'color'], [VALUE, [FUNCTION, 'rgb', 100, 200, 50]]`
 
 ## Examples
 
@@ -281,5 +292,53 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red']
   [RULE_END]
+]
+```
+
+### Functional pseudo class
+
+```css
+.foo:matches(:hover, :focus) {
+  color: red
+}
+```
+
+```js
+[
+  [RULE_START, 1],
+    [SELECTOR, '.foo', [
+      FUNCTION, ':matches', ':hover', ':focus'
+    ]],
+    [PROPERTY, 'color'],
+    [VALUE, 'red']
+  [RULE_END]  
+]
+```
+
+### Functional value notation
+
+ `color: rgb(100, 200, 50)` => `[PROPERTY, 'color'], [FUNCTION, 'rgb', 100, 200, 50]`
+```css
+.foo {
+  background: url(http://www.example.org/image);
+  color: rgb(100, 200, 50 );
+  content: counter(list-item) ". ";
+  width: calc(50% - 2em);
+}
+```
+
+```js
+[
+  [RULE_START, 1],
+    [SELECTOR, '.foo'],
+    [PROPERTY, 'background'],
+    [VALUE, [FUNCTION, 'url', 'http://www.example.org/image']],
+    [PROPERTY, 'color'],
+    [VALUE, [FUNCTION, 'rgb', 100, 200, 50]],
+    [PROPERTY, 'content'],
+    [VALUE, [FUNCTION, 'counter', 'list-item'], '". "'],
+    [PROPERTY, 'width'],
+    [VALUE, [FUNCTION, 'calc', '50% - 2em']]
+  [RULE_END]  
 ]
 ```
