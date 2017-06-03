@@ -30,9 +30,9 @@ const VALUE = 11
 const CONDITION = 12
 ```
 
-#### RULE_START
+#### Rule start
 
-Denotes the beginning of a rule, has a rule type.
+Marker `RULE_START` specifies the beginning of a rule, has a rule type.
 
 `[RULE_START, RULE_TYPE]`
 
@@ -58,30 +58,35 @@ All rule types from https://wiki.csswg.org/spec/cssom-constants
 17 CUSTOM_MEDIA_RULE mediaqueries
 ```
 
-#### RULE_END
+#### Rule end
 
-End of a rule.
+Marker `RULE_END` specifies the end of a rule.
 
-#### RULE_NAME
+#### Named rule.
 
-Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded global class names. Consumer library will generate a selector for the rule and user can access it by name.
+Marker `RULE_NAME` specifies a rule name.
+
+Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded selectors. Consumer library will generate a selector for the rule and user can access it by name.
 We rely on the JavaScript module scope. Name should be unique within that module scope.
 
 E.g. `[RULE_NAME, 'bar']`
 
-#### SELECTOR
+#### Selector
 
-Denotes a selector or selector compound.
+Marker `SELECTOR` specifies a selector or selector compound.
+
+Selector e.g. `.foo` => `[SELECTOR, '.foo']`
 
 Selector compound e.g. `.foo.bar` => `[SELECTOR, '.foo', '.bar']`
 
-Multiple classes e.g. `.foo .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
+Selector list e.g. `.foo, .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
 
-#### PARENT_SELECTOR
+#### Parent selector
 
-Denotes a reference to the selector of the parent rule. Only useful for nesting.
+Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector.
+Useful for nesting.
 
-E.g.: `&:hover` => `[SELECTOR, PARENT_SELECTOR, ':hover']`
+E.g.: `&:hover` => `[PARENT_SELECTOR, ':hover']`
 
 #### Combinators
 
@@ -90,19 +95,19 @@ All combinator constants denote any of 5 [CSS combinators](https://drafts.csswg.
 E.g.: `.foo .bar` => `[SELECTOR, '.foo', SPACE_COMBINATOR, '.bar']`
 or `.foo + .bar` => `[SELECTOR, '.foo', NEXT_SIBLING_COMBINATOR, '.bar']`
 
-#### PROPERTY
+#### Property name
 
-Denotes a property name e.g.: `[PROPERTY, 'color']`.
+Marker `PROPERTY` specifies a property name e.g.: `[PROPERTY, 'color']`.
 
-#### VALUE
+#### Property value
 
-Denotes a property value e.g.: `[VALUE, 'red']`.
+Marker `VALUE` specifies a property value e.g.: `[VALUE, 'red']`.
 
 Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
-#### CONDITION
+#### Condition
 
-Denotes conditions for conditional rules.
+Marker `CONDITION` specifies a condition for conditional rules.
 
 E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
@@ -227,7 +232,7 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [RULE_START, 1],
-      [SELECTOR, PARENT_SELECTOR, ':hover'],
+      [PARENT_SELECTOR, ':hover'],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
     [RULE_END],
@@ -253,7 +258,7 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [RULE_START, 1],
-      [SELECTOR, PARENT_SELECTOR, '.bar', '.baz', SPACE_COMBINATOR, '.bla'],
+      [PARENT_SELECTOR, '.bar', '.baz', SPACE_COMBINATOR, '.bla'],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
     [RULE_END],
