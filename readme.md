@@ -142,7 +142,7 @@ body {
 ]
 ```
 
-### Multiple classes in one selector
+### Selectors list
 
 ```css
 body, .foo {
