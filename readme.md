@@ -17,13 +17,17 @@ Examples are using constant names instead of values for readability within the s
 ```js
 const RULE_START = 0
 const RULE_END = 1
-const SELECTOR = 2
-const NAME = 3
-const PROPERTY = 4
-const VALUE = 5
-const PARENT_SELECTOR = 6
-const SPACE = 7
-const CONDITION = 8
+const RULE_NAME = 2
+const SELECTOR = 3
+const PARENT_SELECTOR = 4
+const SPACE_COMBINATOR = 5
+const DOUBLED_CHILD_COMBINATOR = 6
+const CHILD_COMBINATOR = 7
+const NEXT_SIBLING_COMBINATOR = 8
+const SUBSEQUENT_SIBLING_COMBINATOR = 9
+const PROPERTY = 10
+const VALUE = 11
+const CONDITION = 12
 ```
 
 #### RULE_START
@@ -58,6 +62,13 @@ All rule types from https://wiki.csswg.org/spec/cssom-constants
 
 End of a rule.
 
+#### RULE_NAME
+
+Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded global class names. Consumer library will generate a selector for the rule and user can access it by name.
+We rely on the JavaScript module scope. Name should be unique within that module scope.
+
+E.g. `[RULE_NAME, 'bar']`
+
 #### SELECTOR
 
 Denotes a selector or selector compound.
@@ -66,12 +77,18 @@ Selector compound e.g. `.foo.bar` => `[SELECTOR, '.foo', '.bar']`
 
 Multiple classes e.g. `.foo .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
 
-#### NAME
+#### PARENT_SELECTOR
 
-Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded global class names. Consumer library will generate a selector for the rule and user can access it by name.
-We rely on the JavaScript module scope. Name should be unique within that module scope.
+Denotes a reference to the selector of the parent rule. Only useful for nesting.
 
-E.g. `[NAME, 'bar']`
+E.g.: `&:hover` => `[SELECTOR, PARENT_SELECTOR, ':hover']`
+
+#### Combinators
+
+All combinator constants denote any of 5 [CSS combinators](https://drafts.csswg.org/selectors/#combinators).
+
+E.g.: `.foo .bar` => `[SELECTOR, '.foo', SPACE_COMBINATOR, '.bar']`
+or `.foo + .bar` => `[SELECTOR, '.foo', NEXT_SIBLING_COMBINATOR, '.bar']`
 
 #### PROPERTY
 
@@ -83,24 +100,11 @@ Denotes a property value e.g.: `[VALUE, 'red']`.
 
 Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
-#### PARENT_SELECTOR
-
-Denotes a reference to the selector of the parent rule. Only useful for nesting.
-
-E.g.: `&:hover` => `[SELECTOR, PARENT_SELECTOR, ':hover']`
-
-#### SPACE
-
-Denotes a space.
-
-E.g.: `& .foo` => `[SELECTOR, PARENT_SELECTOR, SPACE, '.foo']`
-
 #### CONDITION
 
 Denotes conditions for conditional rules.
 
 E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
-
 
 ## Examples
 
@@ -249,7 +253,7 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [RULE_START, 1],
-      [SELECTOR, PARENT_SELECTOR, '.bar', '.baz', SPACE, '.bla'],
+      [SELECTOR, PARENT_SELECTOR, '.bar', '.baz', SPACE_COMBINATOR, '.bla'],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
     [RULE_END],
@@ -268,7 +272,7 @@ body, .foo {
 ```js
 [
   [RULE_START, 1],
-    [NAME, 'foo'],
+    [RULE_NAME, 'foo'],
     [PROPERTY, 'color'],
     [VALUE, 'red']
   [RULE_END]
