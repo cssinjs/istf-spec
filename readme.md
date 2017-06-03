@@ -33,9 +33,9 @@ const FUNCTION = 13
 
 #### Rule start
 
-Marker `RULE_START` specifies the beginning of a rule, has a rule type.
+`[RULE_START, <type>]`
 
-`[RULE_START, RULE_TYPE]`
+Marker `RULE_START` specifies the beginning of a rule, has a rule type.
 
 All rule types from https://wiki.csswg.org/spec/cssom-constants
 
@@ -61,18 +61,22 @@ All rule types from https://wiki.csswg.org/spec/cssom-constants
 
 #### Rule end
 
+`[RULE_END]`
+
 Marker `RULE_END` specifies the end of a rule.
 
 #### Named rule.
+
+`[RULE_NAME, <name>]`
 
 Marker `RULE_NAME` specifies a rule name.
 
 Instead of using a selector, a rule can be identified by a name. This is a preferred way instead of using hardcoded selectors. Consumer library will generate a selector for the rule and user can access it by name.
 We rely on the JavaScript module scope. Name should be unique within that module scope.
 
-E.g. `[RULE_NAME, 'bar']`
-
 #### Selector
+
+`[SELECTOR, ...<selectors>]`
 
 Marker `SELECTOR` specifies a selector or selector compound.
 
@@ -84,12 +88,16 @@ Selector list e.g. `.foo, .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
 
 #### Parent selector
 
+`[PARENT_SELECTOR, ...<selectors>]`
+
 Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector.
 Useful for nesting.
 
 E.g.: `&:hover` => `[PARENT_SELECTOR, ':hover']`
 
 #### Combinators
+
+`[ANY_COMBINATOR]`
 
 All combinator constants denote any of 5 [CSS combinators](https://drafts.csswg.org/selectors/#combinators).
 
@@ -98,9 +106,13 @@ or `.foo + .bar` => `[SELECTOR, '.foo', NEXT_SIBLING_COMBINATOR, '.bar']`
 
 #### Property name
 
+`[PROPERTY, <name>]`
+
 Marker `PROPERTY` specifies a property name e.g.: `[PROPERTY, 'color']`.
 
 #### Property value
+
+`[VALUE, <value>]`
 
 Marker `VALUE` specifies a property value e.g.: `[VALUE, 'red']`.
 
@@ -108,15 +120,18 @@ Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, '
 
 #### Condition
 
+`[CONDITION, <condition>]`
+
 Marker `CONDITION` specifies a condition for conditional rules.
 
 E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
 #### Function
 
-Marker `FUNCTION` specifies [functional pseudo class](https://drafts.csswg.org/selectors/#functional-pseudo-class) as well as [functional notation](https://drafts.csswg.org/css-values-4/#functional-notation).
+`[FUNCTION, <name>, ...<arguments>]`
 
-After the FUNCTION marker follows the function name and each argument as a separate entry: `[FUNCTION, {NAME}, {ARG0}, {ARG1}, ...]`
+Marker `FUNCTION` specifies [functional pseudo class](https://drafts.csswg.org/selectors/#functional-pseudo-class) as well as [functional notation](https://drafts.csswg.org/css-values-4/#functional-notation).
+After the FUNCTION marker follows the function name and each argument as a separate entry.
 
 Functional pseudo class e.g. `.foo:matches(:hover, :focus)` => `[SELECTOR, '.foo', [FUNCTION, ':matches', ':hover', ':focus']]`
 
@@ -250,7 +265,7 @@ body, .foo {
 ]
 ```
 
-### Nesting with a compound selector and regular selector
+### Nesting with a compound selector
 
 ```css
 .foo {
@@ -316,7 +331,6 @@ body, .foo {
 
 ### Functional value notation
 
- `color: rgb(100, 200, 50)` => `[PROPERTY, 'color'], [FUNCTION, 'rgb', 100, 200, 50]`
 ```css
 .foo {
   background: url(http://www.example.org/image);
