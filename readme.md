@@ -76,7 +76,7 @@ We rely on the JavaScript module scope. Name should be unique within that module
 
 #### Selector
 
-`[SELECTOR, ...<selectors>]`
+`[SELECTOR, ...<selector>]`
 
 Marker `SELECTOR` specifies a selector or selector compound.
 
@@ -88,7 +88,7 @@ Selector list e.g. `.foo, .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
 
 #### Parent selector
 
-`[PARENT_SELECTOR, ...<selectors>]`
+`[PARENT_SELECTOR, ...<selector>]`
 
 Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector.
 Useful for nesting.
@@ -99,14 +99,14 @@ E.g.: `&:hover` => `[PARENT_SELECTOR, ':hover']`
 
 `[ANY_COMBINATOR]`
 
-All combinator constants denote any of 5 [CSS combinators](https://drafts.csswg.org/selectors/#combinators).
+Combinator constants denote 5 [CSS combinators](https://drafts.csswg.org/selectors/#combinators).
 
 E.g.: `.foo .bar` => `[SELECTOR, '.foo', SPACE_COMBINATOR, '.bar']`
 or `.foo + .bar` => `[SELECTOR, '.foo', NEXT_SIBLING_COMBINATOR, '.bar']`
 
 #### Property name
 
-`[PROPERTY, <name>]`
+`[PROPERTY, <property>]`
 
 Marker `PROPERTY` specifies a property name e.g.: `[PROPERTY, 'color']`.
 
@@ -116,7 +116,9 @@ Marker `PROPERTY` specifies a property name e.g.: `[PROPERTY, 'color']`.
 
 Marker `VALUE` specifies a property value e.g.: `[VALUE, 'red']`.
 
-Multiple comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
+Space separated values e.g.: `red green` => `[VALUE, 'red', 'green']`.
+
+Comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
 #### Condition
 
