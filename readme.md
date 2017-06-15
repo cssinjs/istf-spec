@@ -1,10 +1,10 @@
-## Interoperable CSSinJS format.
+## Interoperable CSSinJS standard format.
 
 The biggest issue at scale we currently have with all CSSinJS implementations is that they are not sharable without the runtime.
 
 We can define a format that is easy to parse and supports all the needs of the current CSSinJS implementations on top of CSS.
 
-Package maintainers will be able to publish JavaScript files to NPM with this format inside instead of plain CSS.
+Package maintainers will be able to publish JavaScript files to NPM using this format instead of plain CSS or any variation of objects notation.
 
 ## First draft
 
@@ -20,6 +20,8 @@ const RULE_END = 1
 const RULE_NAME = 2
 const SELECTOR = 3
 const PARENT_SELECTOR = 4
+const COMPOUND_SELECTOR_START = 5
+const COMPOUND_SELECTOR_END = 6
 const SPACE_COMBINATOR = 5
 const DOUBLED_CHILD_COMBINATOR = 6
 const CHILD_COMBINATOR = 7
@@ -27,8 +29,11 @@ const NEXT_SIBLING_COMBINATOR = 8
 const SUBSEQUENT_SIBLING_COMBINATOR = 9
 const PROPERTY = 10
 const VALUE = 11
-const CONDITION = 12
-const FUNCTION = 13
+const COMPOUND_VALUE_START = 12
+const COMPOUND_VALUE_END = 13
+const CONDITION = 14
+const FUNCTION_START = 15
+const FUNCTION_END = 16
 ```
 
 #### Rule start
@@ -76,51 +81,94 @@ We rely on the JavaScript module scope. Name should be unique within that module
 
 #### Selector
 
-`[SELECTOR, ...<selector>]`
+`[SELECTOR, <selector>]`
 
-Marker `SELECTOR` specifies a selector or selector compound.
+Marker `SELECTOR` specifies a selector.
 
 Selector e.g. `.foo` => `[SELECTOR, '.foo']`
 
-Selector compound e.g. `.foo.bar` => `[SELECTOR, '.foo', '.bar']`
-
 Selector list e.g. `.foo, .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
+
+#### Compound selector
+
+`[COMPOUND_SELECTOR_START], [SELECTOR, <selector>]+, [*COMBINATOR]?, [COMPOUND_SELECTOR_END]`
+
+[Compound](https://drafts.csswg.org/selectors/#compound) selector consists of simple selectors which might be separated by [combinators](https://drafts.csswg.org/selectors/#combinators).
+
+Selector compound without combinators e.g. `.foo.bar` =>
+
+```
+[SELECTOR_COMPOUND_START],
+  [SELECTOR, '.foo'],
+  [SELECTOR, '.bar'],
+[SELECTOR_COMPOUND_END]
+```
+
+Selector compound with space combinator e.g. `.foo .bar` =>
+
+```
+[SELECTOR_COMPOUND_START],
+  [SELECTOR, '.foo'],
+  [SPACE_COMBINATOR],
+  [SELECTOR, '.bar'],
+[SELECTOR_COMPOUND_END]
+```
+
+Selector compound with next sibling combinator e.g. `.foo + .bar` =>
+
+```
+[SELECTOR_COMPOUND_START],
+  [SELECTOR, '.foo'],
+  [NEXT_SIBLING_COMBINATOR],
+  [SELECTOR, '.bar'],
+[SELECTOR_COMPOUND_END]
+```
 
 #### Parent selector
 
-`[PARENT_SELECTOR, ...<selector>]`
+`[PARENT_SELECTOR]`
 
 Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector.
 Useful for nesting.
 
-E.g.: `&:hover` => `[PARENT_SELECTOR, ':hover']`
+E.g.: `&:hover` =>
 
-#### Combinators
-
-`[ANY_COMBINATOR]`
-
-Combinator constants denote 5 [CSS combinators](https://drafts.csswg.org/selectors/#combinators).
-
-E.g.: `.foo .bar` => `[SELECTOR, '.foo', SPACE_COMBINATOR, '.bar']`
-or `.foo + .bar` => `[SELECTOR, '.foo', NEXT_SIBLING_COMBINATOR, '.bar']`
+```
+[COMPOUND_SELECTOR_START]
+  [PARENT_SELECTOR],
+  [SELECTOR, ':hover'],
+[COMPOUND_SELECTOR_END]
+```
 
 #### Property name
 
 `[PROPERTY, <property>]`
 
-Marker `PROPERTY` specifies a property name e.g.: `[PROPERTY, 'color']`.
+Marker `PROPERTY` specifies a property name e.g.: `color` => `[PROPERTY, 'color']`.
 
-#### Property value
+#### Simple value
 
 `[VALUE, <value>]`
 
-Marker `VALUE` specifies a property value e.g.: `[VALUE, 'red']`.
+Marker `VALUE` specifies a property value e.g.: `red` => `[VALUE, 'red']`.
 
-Space separated values e.g.: `red green` => `[VALUE, 'red', 'green']`.
+#### Values list
 
-Comma separated values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
+A comma separated list of simple values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
-#### Condition
+
+#### Compound value
+
+A value that consists of multiple space separated simple values: e.g.: `10px 20px` =>
+
+```
+[COMPOUND_VALUE_START],
+  [VALUE, '10px'],
+  [VALUE, '20px'],
+[COMPOUND_VALUE_END]
+```
+
+### Condition
 
 `[CONDITION, <condition>]`
 
@@ -130,14 +178,32 @@ E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
 #### Function
 
-`[FUNCTION, <name>, ...<arguments>]`
+`[FUNCTION_START, <name>], [SELECTOR|VALUE, <argument>], [FUNCTION_END]`
 
-Marker `FUNCTION` specifies [functional pseudo class](https://drafts.csswg.org/selectors/#functional-pseudo-class) as well as [functional notation](https://drafts.csswg.org/css-values-4/#functional-notation).
-After the FUNCTION marker follows the function name and each argument as a separate entry.
+Function specifies [functional pseudo class](https://drafts.csswg.org/selectors/#functional-pseudo-class) as well as [functional notation](https://drafts.csswg.org/css-values-4/#functional-notation).
 
-Functional pseudo class e.g. `.foo:matches(:hover, :focus)` => `[SELECTOR, '.foo', [FUNCTION, ':matches', ':hover', ':focus']]`
+Functional pseudo class e.g. `.foo:matches(:hover, :focus)` =>
 
-Functional value notation e.g.: `color: rgb(100, 200, 50)` => `[PROPERTY, 'color'], [VALUE, [FUNCTION, 'rgb', 100, 200, 50]]`
+```
+[SELECTOR_COMPOUND_START],
+  [SELECTOR, '.foo'],
+  [FUNCTION_START, ':matches'],
+    [SELECTOR, ':hover'],
+    [SELECTOR, ':focus'],
+  [FUNCTION_END],
+[SELECTOR_COMPOUND_END]
+```
+
+Functional value notation e.g.: `color: rgb(100, 200, 50)` =>
+
+```
+[PROPERTY, 'color'],
+[FUNCTION_START, 'rgb'],
+  [VALUE, 100],
+  [VALUE, 200],
+  [VALUE, 50],
+[FUNCTION_END]
+```
 
 ## Examples
 
@@ -202,7 +268,7 @@ body, .foo {
 ```css
 .foo {
   color: red;
-  color: linear-gradient(to right, red 0%, green 100%);
+  color: palevioletred;
 }
 ```
 
@@ -213,7 +279,7 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [PROPERTY, 'color'],
-    [VALUE, 'linear-gradient(to right, red 0%, green 100%)'],
+    [VALUE, 'palevioletred'],
   [RULE_END]
 ]
 ```
@@ -231,7 +297,7 @@ body, .foo {
 ```js
 [
   [RULE_START, 1],
-  [CONDITION, 'all'],
+    [CONDITION, 'all'],
     [RULE_START, 1],
       [SELECTOR, '.foo'],
       [PROPERTY, 'color'],
@@ -259,7 +325,10 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [RULE_START, 1],
-      [PARENT_SELECTOR, ':hover'],
+      [COMPOUND_SELECTOR_START],
+        [PARENT_SELECTOR],
+        [SELECTOR, ':hover'],
+      [COMPOUND_SELECTOR_END],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
     [RULE_END],
@@ -285,7 +354,13 @@ body, .foo {
     [PROPERTY, 'color'],
     [VALUE, 'red'],
     [RULE_START, 1],
-      [PARENT_SELECTOR, '.bar', '.baz', SPACE_COMBINATOR, '.bla'],
+      [COMPOUND_SELECTOR_START],
+        [PARENT_SELECTOR],
+        [SELECTOR, '.bar'],
+        [SELECTOR, '.baz'],
+        [SPACE_COMBINATOR],
+        [SELECTOR, '.bla'],
+      [COMPOUND_SELECTOR_END],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
     [RULE_END],
@@ -322,9 +397,13 @@ body, .foo {
 ```js
 [
   [RULE_START, 1],
-    [SELECTOR, '.foo', [
-      FUNCTION, ':matches', ':hover', ':focus'
-    ]],
+    [COMPOUND_SELECTOR_START],
+      [SELECTOR, '.foo'],
+      [FUNCTION_START, ':matches'],
+        [SELECTOR, ':hover'],
+        [SELECTOR, ':focus'],
+      [FUNCTION_END],
+    [COMPOUND_SELECTOR_END],
     [PROPERTY, 'color'],
     [VALUE, 'red']
   [RULE_END]  
@@ -336,7 +415,7 @@ body, .foo {
 ```css
 .foo {
   background: url(http://www.example.org/image);
-  color: rgb(100, 200, 50 );
+  color: rgb(100, 200, 50);
   content: counter(list-item) ". ";
   width: calc(50% - 2em);
 }
@@ -347,13 +426,26 @@ body, .foo {
   [RULE_START, 1],
     [SELECTOR, '.foo'],
     [PROPERTY, 'background'],
-    [VALUE, [FUNCTION, 'url', 'http://www.example.org/image']],
+    [FUNCTION_START, 'url'],
+      [VALUE, 'http://www.example.org/image']
+    [FUNCTION_END],
     [PROPERTY, 'color'],
-    [VALUE, [FUNCTION, 'rgb', 100, 200, 50]],
+    [FUNCTION_START, 'rgb'],
+      [VALUE, 100],
+      [VALUE, 200],
+      [VALUE, 50]
+    [FUNCTION_END],    
     [PROPERTY, 'content'],
-    [VALUE, [FUNCTION, 'counter', 'list-item'], '". "'],
+    [COMPOUND_VALUE_START],
+      [FUNCTION_START, 'counter'],
+        [VALUE, 'list-item']
+      [FUNCTION_END],     
+      [VALUE, '". "']
+    [COMPOUND_VALUE_END],
     [PROPERTY, 'width'],
-    [VALUE, [FUNCTION, 'calc', '50% - 2em']]
+    [FUNCTION_START, 'calc'],
+      [VALUE, '50% - 2em'],
+    [FUNCTION_END],
   [RULE_END]  
 ]
 ```
