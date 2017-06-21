@@ -1,4 +1,4 @@
-## Interoperable CSSinJS standard.
+## Interoperable CSSinJS standard [DRAFT].
 
 The biggest issue at scale we currently have with all CSSinJS implementations is that they are not sharable without the runtime.
 
