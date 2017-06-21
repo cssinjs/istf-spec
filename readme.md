@@ -1,14 +1,15 @@
-## Interoperable CSSinJS standard format.
+## Interoperable CSSinJS standard.
 
 The biggest issue at scale we currently have with all CSSinJS implementations is that they are not sharable without the runtime.
 
-We can define a format that is easy to parse and supports all the needs of the current CSSinJS implementations on top of CSS.
+Using regular CSS doesn't support all features we need. CSS notation is designed for humans and is too slow for parsing.
 
-Package maintainers will be able to publish JavaScript files to NPM using this format instead of plain CSS or any variation of objects notation.
+This format is [blazingly fast](https://esbench.com/bench/592d599e99634800a03483d8) to parse and will support all needs of the current CSSinJS implementations.
 
-## First draft
+Package maintainers will be able to publish JavaScript files to NPM in this format instead of plain CSS or any variation of objects notation.
 
-Format is optimized for parsing in JavaScript, not for human readability.
+Do not confuse this format with an AST. It is designed purely for interoperability and publishing. Using this format you can build an AST or regular CSS or any other structure.
+
 
 ### Markers
 
