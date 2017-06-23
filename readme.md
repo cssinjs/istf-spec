@@ -35,6 +35,7 @@ const COMPOUND_VALUE_END = 13
 const CONDITION = 14
 const FUNCTION_START = 15
 const FUNCTION_END = 16
+const JS_FUNCTION_VALUE = 17
 ```
 
 #### Rule start
@@ -155,10 +156,14 @@ Marker `VALUE` specifies a property value e.g.: `red` => `[VALUE, 'red']`.
 
 #### Values list
 
+`[VALUE, 'red']+`
+
 A comma separated list of simple values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
 
 #### Compound value
+
+`[COMPOUND_VALUE_START], [VALUE, <value>]+, [COMPOUND_VALUE_END]`
 
 A value that consists of multiple space separated simple values: e.g.: `10px 20px` =>
 
@@ -168,6 +173,12 @@ A value that consists of multiple space separated simple values: e.g.: `10px 20p
   [VALUE, '20px'],
 [COMPOUND_VALUE_END]
 ```
+
+#### JavaScript Function Value
+
+`[JS_FUNCTION_VALUE, funRef]`
+
+Value can be a JavaScript function which returns any valid ISTF value.
 
 ### Condition
 
@@ -450,3 +461,36 @@ body, .foo {
   [RULE_END]  
 ]
 ```
+
+#### JavaScript Function Value
+
+```css
+.foo {
+  color: ${() => 'red'},
+  margin: ${() => '10px 20px'},
+  border: ${() => 'green, red'}
+}
+```
+
+```js
+[
+  [RULE_START, 1],
+    [SELECTOR, '.foo'],
+    [PROPERTY, 'color'],
+    [JS_FUNCTION_VALUE, () => [
+      [VALUE, 'red']
+    ]],
+    [PROPERTY, 'margin'],
+    [JS_FUNCTION_VALUE, () => [
+      [COMPOUND_VALUE_START],
+        [VALUE, '10px'],
+        [VALUE, '20px'],
+      [COMPOUND_VALUE_END]
+    ]],
+    [PROPERTY, 'border'],
+    [JS_FUNCTION_VALUE, () => [
+      [VALUE, 'green'],
+      [VALUE, 'red']
+    ]],    
+  [RULE_END]
+]
