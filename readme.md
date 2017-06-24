@@ -36,6 +36,7 @@ const CONDITION = 14
 const FUNCTION_START = 15
 const FUNCTION_END = 16
 const JS_FUNCTION_VALUE = 17
+const ANIMATION_NAME = 18
 ```
 
 #### Rule start
@@ -492,5 +493,35 @@ body, .foo {
       [VALUE, 'green'],
       [VALUE, 'red']
     ]],    
+  [RULE_END]
+]
+
+#### Keyframes
+
+```css
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+```
+
+```js
+[
+  [RULE_START, 7],
+    [ANIMATION_NAME, 'fadeIn'],
+    [RULE_START, 8],
+      [RULE_NAME, 'from'],
+      [PROPERTY, 'opacity'],
+      [VALUE, 0],
+    [RULE_END],
+    [RULE_START, 8],
+      [RULE_NAME, 'to'],
+      [PROPERTY, 'opacity'],
+      [VALUE, 1],
+    [RULE_END],
   [RULE_END]
 ]
