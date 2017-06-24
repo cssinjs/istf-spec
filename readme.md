@@ -525,3 +525,26 @@ body, .foo {
     [RULE_END],
   [RULE_END]
 ]
+
+#### Media query
+
+
+```css
+@media all {
+  .foo {
+    color: red;
+  }
+}
+```
+
+```js
+[
+  [RULE_START, 4],
+    [CONDITION, 'all'],
+    [RULE_START, 1],
+      [SELECTOR, '.foo'],
+      [PROPERTY, 'color'],
+      [VALUE, 'red'],
+    [RULE_END],
+  [RULE_END]
+]
