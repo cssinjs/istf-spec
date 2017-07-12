@@ -445,7 +445,11 @@ body, .foo {
     [COMPOUND_VALUE_END],
     [PROPERTY, 'width'],
     [FUNCTION_START, 'calc'],
-      [VALUE, '50% - 2em'],
+      [COMPOUND_VALUE_START],
+        [VALUE, '50%'],
+        [VALUE, '-'],
+        [VALUE, '2em'],
+      [COMPOUND_VALUE_END]
     [FUNCTION_END],
   [RULE_END]  
 ]
