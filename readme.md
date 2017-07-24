@@ -1,4 +1,4 @@
-## Interoperable Styling Transfer Format [DRAFT].
+## Interoperable Style Transfer Format [DRAFT].
 
 The biggest issue at scale we currently have with all CSSinJS implementations is that they are not sharable without the runtime.
 
@@ -35,6 +35,10 @@ const COMPOUND_VALUE_END = 13
 const CONDITION = 14
 const FUNCTION_START = 15
 const FUNCTION_END = 16
+const JS_FUNCTION_SELECTOR = 17
+const JS_FUNCTION_PROPERTY = 18
+const JS_FUNCTION_VALUE = 19
+const JS_FUNCTION_PARTIAL = 20
 ```
 
 #### Rule start
@@ -98,7 +102,7 @@ Selector list e.g. `.foo, .bar` => `[SELECTOR, '.foo'], [SELECTOR, '.bar']`
 
 Selector compound without combinators e.g. `.foo.bar` =>
 
-```
+```js
 [SELECTOR_COMPOUND_START],
   [SELECTOR, '.foo'],
   [SELECTOR, '.bar'],
@@ -107,7 +111,7 @@ Selector compound without combinators e.g. `.foo.bar` =>
 
 Selector compound with space combinator e.g. `.foo .bar` =>
 
-```
+```js
 [SELECTOR_COMPOUND_START],
   [SELECTOR, '.foo'],
   [SPACE_COMBINATOR],
@@ -117,7 +121,7 @@ Selector compound with space combinator e.g. `.foo .bar` =>
 
 Selector compound with next sibling combinator e.g. `.foo + .bar` =>
 
-```
+```js
 [SELECTOR_COMPOUND_START],
   [SELECTOR, '.foo'],
   [NEXT_SIBLING_COMBINATOR],
@@ -134,7 +138,7 @@ Useful for nesting.
 
 E.g.: `&:hover` =>
 
-```
+```js
 [COMPOUND_SELECTOR_START]
   [PARENT_SELECTOR],
   [SELECTOR, ':hover'],
@@ -155,28 +159,23 @@ Marker `VALUE` specifies a property value e.g.: `red` => `[VALUE, 'red']`.
 
 #### Values list
 
+`[VALUE, 'red']+`
+
 A comma separated list of simple values e.g.: `red, green` => `[VALUE, 'red'], [VALUE, 'green']`.
 
 
 #### Compound value
 
+`[COMPOUND_VALUE_START], [VALUE, <value>]+, [COMPOUND_VALUE_END]`
+
 A value that consists of multiple space separated simple values: e.g.: `10px 20px` =>
 
-```
+```js
 [COMPOUND_VALUE_START],
   [VALUE, '10px'],
   [VALUE, '20px'],
 [COMPOUND_VALUE_END]
 ```
-
-### Condition
-
-`[CONDITION, <condition>]`
-
-Marker `CONDITION` specifies a condition for conditional rules.
-
-E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
-
 #### Function
 
 `[FUNCTION_START, <name>], [SELECTOR|VALUE, <argument>], [FUNCTION_END]`
@@ -185,7 +184,7 @@ Function specifies [functional pseudo class](https://drafts.csswg.org/selectors/
 
 Functional pseudo class e.g. `.foo:matches(:hover, :focus)` =>
 
-```
+```js
 [SELECTOR_COMPOUND_START],
   [SELECTOR, '.foo'],
   [FUNCTION_START, ':matches'],
@@ -197,13 +196,101 @@ Functional pseudo class e.g. `.foo:matches(:hover, :focus)` =>
 
 Functional value notation e.g.: `color: rgb(100, 200, 50)` =>
 
-```
+```js
 [PROPERTY, 'color'],
 [FUNCTION_START, 'rgb'],
   [VALUE, 100],
   [VALUE, 200],
   [VALUE, 50],
 [FUNCTION_END]
+```
+
+### Condition
+
+`[CONDITION, <condition>]`
+
+Marker `CONDITION` specifies a condition for conditional rules.
+
+E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
+
+#### JavaScript Function Value
+
+`[JS_FUNCTION_VALUE, funRef]`
+
+Expected return value is ISTF or a string. Using ISTF value gives more power to post-processors. Using string value results in better performance.
+
+`border: red, green` =>
+
+```js
+// Using ISTF value:
+[PROPERTY, 'border'],
+[JS_FUNCTION_VALUE, () => [
+  [VALUE, 'red'],
+  [VALUE, 'green'],
+]]
+
+// Using a string value:
+[JS_FUNCTION_VALUE, () => 'red, green']
+```
+
+#### JavaScript Function Property
+
+`[JS_FUNCTION_PROPERTY, funRef]`
+
+Expected return value is a string.
+
+`border: red` =>
+
+```js
+[JS_FUNCTION_PROPERTY, () => 'border'],
+[VALUE, 'red']
+```
+
+#### JavaScript Function Selector
+
+`[JS_FUNCTION_SELECTOR, funRef]`
+
+Expected return value is a string.
+
+Simple selector: `.foo` => `[JS_FUNCTION_SELECTOR, () => '.foo']`
+Compound selector: `.foo.bar` =>
+
+```js
+[COMPOUND_SELECTOR_START]
+  [SELECTOR, '.foo'],
+  [JS_FUNCTION_SELECTOR, () => '.bar'],
+[COMPOUND_SELECTOR_END]
+```
+
+#### JavaScript Function Partial
+
+`[JS_FUNCTION_PARTIAL, funRef]`
+
+Expected return value is an ISTF array.
+
+```css
+.foo {
+  color: red;
+}
+.partial {
+  color: green;
+}
+```
+```js
+[
+  [RULE_START, 1],
+    [SELECTOR, '.foo'],
+    [PROPERTY, 'color'],
+    [VALUE, 'red'],
+  [RULE_END],
+  [JS_FUNCTION_PARTIAL, () => [
+    [RULE_START, 1],
+      [SELECTOR, '.partial'],
+      [PROPERTY, 'color'],
+      [VALUE, 'green'],
+    [RULE_END],    
+  ]]
+]
 ```
 
 ## Examples
@@ -450,3 +537,49 @@ body, .foo {
   [RULE_END]  
 ]
 ```
+
+#### Value, Selector and Partial using JavaScript Function
+
+```css
+.foo.bar {
+  color: red;
+  margin: 10px 20px;
+  border: green, red;
+}
+.partial {
+  color: green;
+}
+```
+
+```js
+[
+  [RULE_START, 1],
+    [COMPOUND_SELECTOR_START],
+      [SELECTOR, '.foo'],
+      [JS_FUNCTION_SELECTOR, () => '.bar'],
+    [COMPOUND_SELECTOR_END],
+    [PROPERTY, 'color'],
+    [JS_FUNCTION_VALUE, () => [
+      [VALUE, 'red']
+    ]],
+    [PROPERTY, 'margin'],
+    [JS_FUNCTION_VALUE, () => [
+      [COMPOUND_VALUE_START],
+        [VALUE, '10px'],
+        [VALUE, '20px'],
+      [COMPOUND_VALUE_END]
+    ]],
+    [PROPERTY, 'border'],
+    [JS_FUNCTION_VALUE, () => [
+      [VALUE, 'green'],
+      [VALUE, 'red']
+    ]],    
+  [RULE_END],
+  [JS_FUNCTION_PARTIAL, () => [
+    [RULE_START, 1],
+      [SELECTOR, '.partial']
+      [PROPERTY, 'color'],
+      [VALUE, 'green'],
+    [RULE_END],    
+  ]]
+]
