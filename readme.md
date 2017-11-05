@@ -36,10 +36,10 @@ const CONDITION = 16
 const FUNCTION_START = 17
 const FUNCTION_END = 18
 const ANIMATION_NAME = 19
-const JS_FUNCTION_SELECTOR = 20
-const JS_FUNCTION_PROPERTY = 21
-const JS_FUNCTION_VALUE = 22
-const JS_FUNCTION_PARTIAL = 23
+const SELECTOR_REF = 20
+const PROPERTY_REF = 21
+const VALUE_REF = 22
+const PARTIAL_REF = 23
 ```
 
 #### Rule start
@@ -216,7 +216,7 @@ E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
 #### JavaScript Function Value
 
-`[JS_FUNCTION_VALUE, funRef]`
+`[VALUE_REF, funRef]`
 
 Expected return value is ISTF or a string. Using ISTF value gives more power to post-processors. Using string value results in better performance.
 
@@ -225,47 +225,47 @@ Expected return value is ISTF or a string. Using ISTF value gives more power to 
 ```js
 // Using ISTF value:
 [PROPERTY, 'border'],
-[JS_FUNCTION_VALUE, () => [
+[VALUE_REF, () => [
   [VALUE, 'red'],
   [VALUE, 'green'],
 ]]
 
 // Using a string value:
-[JS_FUNCTION_VALUE, () => 'red, green']
+[VALUE_REF, () => 'red, green']
 ```
 
 #### JavaScript Function Property
 
-`[JS_FUNCTION_PROPERTY, funRef]`
+`[PROPERTY_REF, funRef]`
 
 Expected return value is a string.
 
 `border: red` =>
 
 ```js
-[JS_FUNCTION_PROPERTY, () => 'border'],
+[PROPERTY_REF, () => 'border'],
 [VALUE, 'red']
 ```
 
 #### JavaScript Function Selector
 
-`[JS_FUNCTION_SELECTOR, funRef]`
+`[SELECTOR_REF, funRef]`
 
 Expected return value is a string.
 
-Simple selector: `.foo` => `[JS_FUNCTION_SELECTOR, () => '.foo']`
+Simple selector: `.foo` => `[SELECTOR_REF, () => '.foo']`
 Compound selector: `.foo.bar` =>
 
 ```js
 [COMPOUND_SELECTOR_START]
   [SELECTOR, '.foo'],
-  [JS_FUNCTION_SELECTOR, () => '.bar'],
+  [SELECTOR_REF, () => '.bar'],
 [COMPOUND_SELECTOR_END]
 ```
 
 #### JavaScript Function Partial
 
-`[JS_FUNCTION_PARTIAL, funRef]`
+`[PARTIAL_REF, funRef]`
 
 Expected return value is an ISTF array.
 
@@ -284,7 +284,7 @@ Expected return value is an ISTF array.
     [PROPERTY, 'color'],
     [VALUE, 'red'],
   [RULE_END],
-  [JS_FUNCTION_PARTIAL, () => [
+  [PARTIAL_REF, () => [
     [RULE_START, 1],
       [SELECTOR, '.partial'],
       [PROPERTY, 'color'],
@@ -557,26 +557,26 @@ body, .foo {
   [RULE_START, 1],
     [COMPOUND_SELECTOR_START],
       [SELECTOR, '.foo'],
-      [JS_FUNCTION_SELECTOR, () => '.bar'],
+      [SELECTOR_REF, () => '.bar'],
     [COMPOUND_SELECTOR_END],
     [PROPERTY, 'color'],
-    [JS_FUNCTION_VALUE, () => [
+    [VALUE_REF, () => [
       [VALUE, 'red']
     ]],
     [PROPERTY, 'margin'],
-    [JS_FUNCTION_VALUE, () => [
+    [VALUE_REF, () => [
       [COMPOUND_VALUE_START],
         [VALUE, '10px'],
         [VALUE, '20px'],
       [COMPOUND_VALUE_END]
     ]],
     [PROPERTY, 'border'],
-    [JS_FUNCTION_VALUE, () => [
+    [VALUE_REF, () => [
       [VALUE, 'green'],
       [VALUE, 'red']
     ]],    
   [RULE_END],
-  [JS_FUNCTION_PARTIAL, () => [
+  [PARTIAL_REF, () => [
     [RULE_START, 1],
       [SELECTOR, '.partial']
       [PROPERTY, 'color'],
