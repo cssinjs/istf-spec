@@ -214,11 +214,11 @@ Marker `CONDITION` specifies a condition for conditional rules.
 
 E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
-#### JavaScript Function Value
+#### Value reference
 
-`[VALUE_REF, funRef]`
+`[VALUE_REF, ref]`
 
-Expected return value is ISTF or a string. Using ISTF value gives more power to post-processors. Using string value results in better performance.
+Variable `ref` can be ISTF, a string or a function returning any of those. Using ISTF value gives more power to post-processors. Using string value results in better performance.
 
 `border: red, green` =>
 
@@ -234,11 +234,11 @@ Expected return value is ISTF or a string. Using ISTF value gives more power to 
 [VALUE_REF, () => 'red, green']
 ```
 
-#### JavaScript Function Property
+#### Property reference
 
-`[PROPERTY_REF, funRef]`
+`[PROPERTY_REF, ref]`
 
-Expected return value is a string.
+Variable `ref` is a string or a function which returns a string.
 
 `border: red` =>
 
@@ -247,11 +247,11 @@ Expected return value is a string.
 [VALUE, 'red']
 ```
 
-#### JavaScript Function Selector
+#### Selector reference
 
-`[SELECTOR_REF, funRef]`
+`[SELECTOR_REF, ref]`
 
-Expected return value is a string.
+Variable `ref` is a string or a function which returns a string.
 
 Simple selector: `.foo` => `[SELECTOR_REF, () => '.foo']`
 Compound selector: `.foo.bar` =>
@@ -263,11 +263,11 @@ Compound selector: `.foo.bar` =>
 [COMPOUND_SELECTOR_END]
 ```
 
-#### JavaScript Function Partial
+#### Partial reference
 
-`[PARTIAL_REF, funRef]`
+`[PARTIAL_REF, ref]`
 
-Expected return value is an ISTF array.
+Variable `ref` is an ISTF array or a function which returns an ISTF array.
 
 ```css
 .foo {
@@ -539,7 +539,7 @@ body, .foo {
 ]
 ```
 
-#### Value, Selector and Partial using JavaScript Function
+#### Value, Selector and Partial using a function
 
 ```css
 .foo.bar {
