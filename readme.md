@@ -19,7 +19,7 @@ The following are some terms that are used throughout the spec, or are relevant 
 - **ISTF array:** An array of markers representing the CSS input, including references
 - **Parsing:** The process of converting the input to an ISTF array
 - **Transformation:** The act of changing an ISTF array
-- **Runtime:** The user environment wherein ISTF is turned back into CSS and displayed
+- **Runtime:** The user environment wherein ISTF is turned into CSS and rendered
 - **Preprocessing:** Transforming ISTF arrays to make it ready for distribution and transformation
 - **Postprocessing:** Last transformation steps of ISTF during runtime, like autoprefixing
 - **Evaluation:** Evaluating references to be able to put them into the CSS string during stringification
