@@ -40,6 +40,8 @@ const SELECTOR_REF = 20
 const PROPERTY_REF = 21
 const VALUE_REF = 22
 const PARTIAL_REF = 23
+const STRING_START = 24
+const STRING_END = 25
 ```
 
 #### Rule start
@@ -372,6 +374,24 @@ body, .foo {
   [RULE_END]
 ]
 ```
+
+### Compound strings
+
+`[STRING_START, <quote>], [VALUE|VALUE_REF, <argument>], [STRING_END]`
+
+When a string in CSS contains an interpolation, e.g. `"hello, ${name}"`, the string should be split up into its values and
+value references. This is because compound values are unsuitable to represent strings, since all values and value references should be joined without a separating whitespace. Also how the references should be escaped changes for strings, due to their quotes.
+
+```js
+[
+  [STRING_START, '"'],
+    [VALUE, 'hello, '],
+    [VALUE_REF, name],
+  [STRING_END]
+]
+```
+
+The quotes of the string will not be part of the values, but part of the `STRING_START` marker. When the ISTF is turned back into CSS, the quote will need to be escaped inside the value references.
 
 ### Conditionals
 
