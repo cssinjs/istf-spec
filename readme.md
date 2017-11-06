@@ -10,6 +10,21 @@ Package maintainers will be able to publish JavaScript files to NPM in this form
 
 Do not confuse this format with an AST. It is designed purely for interoperability and publishing. Using this format you can build an AST or regular CSS or any other structure.
 
+### Glossary
+
+The following are some terms that are used throughout the spec, or are relevant when discussing the spec.
+
+- **Markers:** Like nodes in an AST format, these tuples indicate significant literals and values in CSSinJS (See [Markers](#markers))
+- **References:** References to primitives in the host language, typically known as "interpolations" in tagged template literals in JavaScript
+- **ISTF array:** An array of markers representing CSSinJS code
+- **Parsing:** The process of converting CSSinJS to an ISTF array
+- **Transformation:** The act of changing an ISTF array
+- **User environment / Runtime:** The environment wherein ISTF is turned back into CSS and displayed
+- **Preprocessing:** Transforming ISTF arrays to make it distributable and ready for usage in a user environment
+- **Postprocessing:** Last transforming steps of ISTF in a user environment, like autoprefixing
+- **Evaluation:** Evaluating references to be able to put them into the CSS string during stringification
+- **Stringification:** Turning ISTF back into regular CSS, which might involve evaluating references
+- **Injection:** — Injecting CSS into the stylesheet
 
 ### Markers
 
