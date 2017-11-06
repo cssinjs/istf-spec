@@ -385,8 +385,8 @@ value references. This is because compound values are unsuitable to represent st
 ```js
 [
   [STRING_START, '"'],
-  [VALUE, 'hello, '],
-  [VALUE_REF, name],
+    [VALUE, 'hello, '],
+    [VALUE_REF, name],
   [STRING_END]
 ]
 ```
