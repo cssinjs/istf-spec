@@ -14,9 +14,14 @@ Do not confuse this format with an AST. It is designed purely for interoperabili
 
 The following are some terms that are used throughout the spec, or are relevant when discussing the spec.
 
+- **ISTF array:** Array containing ISTF Rules
+- **ISTF rule:** Subset of ISTF array, containing rule selector and declaration
+- **ISTF selector:** Subset of ISTF rule, containing only rule selector
+- **ISTF declaration:** Subset of ISTF rule, containing only properties and values
+- **ISTF property:** Subset of ISTF rule declaration, containing only property
+- **ISTF values:** Subset of ISTF rule declaration, containing only values
 - **Markers:** Like nodes in an AST format, these tuples indicate significant literals and values (See [Markers](#markers))
 - **References:** References to primitives in the host language, typically known as "interpolations" in tagged template literals in JavaScript
-- **ISTF array:** An array of markers representing the CSS input, including references
 - **Parsing:** The process of converting the input to an ISTF array
 - **Transformation:** The act of changing an ISTF array
 - **Runtime:** The user environment wherein ISTF is turned into CSS and rendered
@@ -233,12 +238,12 @@ E.g. `@media all` => `[RULE_START, 4], [CONDITION, 'all']`
 
 `[VALUE_REF, ref]`
 
-Variable `ref` can be ISTF, a string or a function returning any of those. Using ISTF value gives more power to post-processors. Using string value results in better performance.
+Variable `ref` can be ISTF values, a string or a function returning any of those. Using ISTF values gives more power to post-processors. Using string value results in better performance.
 
 `border: red, green` =>
 
 ```js
-// Using ISTF value:
+// Using ISTF values:
 [PROPERTY, 'border'],
 [VALUE_REF, () => [
   [VALUE, 'red'],
