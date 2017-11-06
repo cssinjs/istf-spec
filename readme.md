@@ -380,7 +380,7 @@ body, .foo {
 `[STRING_START, <quote>], [VALUE|VALUE_REF, <argument>], [STRING_END]`
 
 When a string in CSS contains an interpolation, e.g. `"hello, ${name}"`, the string should be split up into its values and
-value refs.
+value references. This is because compound values are unsuitable to represent strings, since all values and value references should be joined without a separating whitespace. Also how the references should be escaped changes for strings, due to their quotes.
 
 ```js
 [
