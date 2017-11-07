@@ -18,8 +18,8 @@ The following are some terms that are used throughout the spec, or are relevant 
 - **ISTF rule:** Subset of ISTF array, containing rule selector and declaration
 - **ISTF selector:** Subset of ISTF rule, containing only rule selector
 - **ISTF declaration:** Subset of ISTF rule, containing only properties and values
-- **ISTF property:** Subset of ISTF rule declaration, containing only property
-- **ISTF values:** Subset of ISTF rule declaration, containing only values
+- **ISTF property:** Subset of ISTF rule declarations, containing only properties
+- **ISTF values:** Subset of ISTF rule declarations, containing only values
 - **Markers:** Like nodes in an AST format, these tuples indicate significant literals and values (See [Markers](#markers))
 - **References:** References to primitives in the host language, typically known as "interpolations" in tagged template literals in JavaScript
 - **Parsing:** The process of converting the input to an ISTF array
