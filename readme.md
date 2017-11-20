@@ -41,27 +41,28 @@ const RULE_END = 1
 const RULE_NAME = 2
 const SELECTOR = 3
 const PARENT_SELECTOR = 4
-const COMPOUND_SELECTOR_START = 5
-const COMPOUND_SELECTOR_END = 6
-const SPACE_COMBINATOR = 7
-const DOUBLED_CHILD_COMBINATOR = 8
-const CHILD_COMBINATOR = 9
-const NEXT_SIBLING_COMBINATOR = 10
-const SUBSEQUENT_SIBLING_COMBINATOR = 11
-const PROPERTY = 12
-const VALUE = 13
-const COMPOUND_VALUE_START = 14
-const COMPOUND_VALUE_END = 15
-const CONDITION = 16
-const FUNCTION_START = 17
-const FUNCTION_END = 18
-const ANIMATION_NAME = 19
-const SELECTOR_REF = 20
-const PROPERTY_REF = 21
-const VALUE_REF = 22
-const PARTIAL_REF = 23
-const STRING_START = 24
-const STRING_END = 25
+const UNIVERSAL_SELECTOR = 5
+const COMPOUND_SELECTOR_START = 6
+const COMPOUND_SELECTOR_END = 7
+const SPACE_COMBINATOR = 8
+const DOUBLED_CHILD_COMBINATOR = 9
+const CHILD_COMBINATOR = 10
+const NEXT_SIBLING_COMBINATOR = 11
+const SUBSEQUENT_SIBLING_COMBINATOR = 12
+const PROPERTY = 13
+const VALUE = 14
+const COMPOUND_VALUE_START = 15
+const COMPOUND_VALUE_END = 16
+const CONDITION = 17
+const FUNCTION_START = 18
+const FUNCTION_END = 19
+const ANIMATION_NAME = 20
+const SELECTOR_REF = 21
+const PROPERTY_REF = 22
+const VALUE_REF = 23
+const PARTIAL_REF = 24
+const STRING_START = 25
+const STRING_END = 26
 ```
 
 #### Rule start
@@ -156,7 +157,7 @@ Selector compound with next sibling combinator e.g. `.foo + .bar` =>
 
 `[PARENT_SELECTOR]`
 
-Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector.
+Marker `PARENT_SELECTOR` specifies a selector, which is a reference to the parent selector, `&`.
 Useful for nesting.
 
 E.g.: `&:hover` =>
@@ -165,6 +166,22 @@ E.g.: `&:hover` =>
 [COMPOUND_SELECTOR_START]
   [PARENT_SELECTOR],
   [SELECTOR, ':hover'],
+[COMPOUND_SELECTOR_END]
+```
+
+
+#### Universal selector
+
+`[UNIVERSAL_SELECTOR]`
+
+Marker `UNIVERSAL_SELECTOR` specifies a selector, which is a reference to the universal selector, `*`.
+
+E.g.: `*.red` =>
+
+```js
+[COMPOUND_SELECTOR_START]
+  [UNIVERSAL_SELECTOR],
+  [SELECTOR, '.red'],
 [COMPOUND_SELECTOR_END]
 ```
 
