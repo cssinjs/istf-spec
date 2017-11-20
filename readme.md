@@ -444,7 +444,8 @@ The quotes of the string will not be part of the values, but part of the `STRING
   [SELECTOR|SELECTOR_REF, <selector>],
   (
     [ATTRIBUTE_OPERATOR, <operator>],
-    [SELECTOR, <string value>] | <compound string>
+    [SELECTOR, <string value>] | <compound string>,
+    [SELECTOR, "i"|"I"]?
   )?
 [ATTRIBUTE_SELECTOR_END]
 ```
@@ -457,6 +458,7 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
 [href="https://example.org"]
 [href*="example"]
 [href*="example.${domain}"]
+[href*="example" i]
 ```
 
 ```js
@@ -486,6 +488,14 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
     [SELECTOR, `example.`],
     [SELECTOR_REF, domain],
   [STRING_END],
+[ATTRIBUTE_SELECTOR_END]
+
+// switching to case-insensitive attribute matches is reflected as an additional selector node
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [SELECTOR, `"example"`],
+  [SELECTOR, "i"],
 [ATTRIBUTE_SELECTOR_END]
 ```
 
