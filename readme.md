@@ -63,6 +63,9 @@ const VALUE_REF = 23
 const PARTIAL_REF = 24
 const STRING_START = 25
 const STRING_END = 26
+const ATTRIBUTE_SELECTOR_START = 27
+const ATTRIBUTE_OPERATOR = 28
+const ATTRIBUTE_SELECTOR_END = 29
 ```
 
 #### Rule start
@@ -414,7 +417,11 @@ body, .foo {
 
 ### Compound strings
 
-`[STRING_START, <quote>], [VALUE|VALUE_REF, <argument>], [STRING_END]`
+```
+[STRING_START, <quote>],
+  [VALUE|VALUE_REF, <argument>] | [SELECTOR|SELECTOR_REF, <argument>],
+[STRING_END]
+```
 
 When a string in CSS contains an interpolation, e.g. `"hello, ${name}"`, the string should be split up into its values and
 value references. This is because compound values are unsuitable to represent strings, since all values and value references should be joined without a separating whitespace. Also how the references should be escaped changes for strings, due to their quotes.
@@ -422,13 +429,65 @@ value references. This is because compound values are unsuitable to represent st
 ```js
 [
   [STRING_START, '"'],
-    [VALUE, 'hello, '],
-    [VALUE_REF, name],
+    [VALUE|SELECTOR, 'hello, '],
+    [VALUE_REF|SELECTOR_REF, name],
   [STRING_END]
 ]
 ```
 
 The quotes of the string will not be part of the values, but part of the `STRING_START` marker. When the ISTF is turned back into CSS, the quote will need to be escaped inside the value references.
+
+### Attribute selectors
+
+```
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR|SELECTOR_REF, <selector>],
+  (
+    [ATTRIBUTE_OPERATOR, <operator>],
+    [SELECTOR, <string value>] | <compound string>
+  )?
+[ATTRIBUTE_SELECTOR_END]
+```
+
+For [Attribute Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors) a special syntax is used.
+They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nodes.
+
+```css
+[title]
+[href="https://example.org"]
+[href*="example"]
+[href*="example.${domain}"]
+```
+
+```js
+// The operator and value can both be left out to represent property-only attribute selectors
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR, "title"],
+[ATTRIBUTE_SELECTOR_END]
+
+// The operator goes into it's own node and the value goes into a third being a selector or selector ref node
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR, "href"],
+  [ATTRIBUTE_OPERATOR, "="],
+  [SELECTOR, `"https://example.org"`],
+[ATTRIBUTE_SELECTOR_END]
+
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [SELECTOR, `"example"`],
+[ATTRIBUTE_SELECTOR_END]
+
+// interpolations at the attribute selector's value are encoded as string compounds
+[ATTRIBUTE_SELECTOR_START],
+  [SELECTOR, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [STRING_START, '"'],
+    [SELECTOR, `example.`],
+    [SELECTOR_REF, domain],
+  [STRING_END],
+[ATTRIBUTE_SELECTOR_END]
+```
 
 ### Conditionals
 
