@@ -63,6 +63,14 @@ const VALUE_REF = 23
 const PARTIAL_REF = 24
 const STRING_START = 25
 const STRING_END = 26
+const ATTRIBUTE_SELECTOR_START = 27
+const ATTRIBUTE_SELECTOR_END = 28
+const ATTRIBUTE_NAME = 29
+const ATTRIBUTE_NAME_REF = 30
+const ATTRIBUTE_OPERATOR = 31
+const ATTRIBUTE_VALUE = 32
+const ATTRIBUTE_VALUE_REF = 33
+const CONDITION_REF = 34
 ```
 
 #### Rule start
@@ -328,7 +336,7 @@ Variable `ref` is an ISTF array or a function which returns an ISTF array.
       [SELECTOR, '.partial'],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
-    [RULE_END],    
+    [RULE_END],
   ]]
 ]
 ```
@@ -414,7 +422,11 @@ body, .foo {
 
 ### Compound strings
 
-`[STRING_START, <quote>], [VALUE|VALUE_REF, <argument>], [STRING_END]`
+```
+[STRING_START, <quote>],
+  [VALUE|VALUE_REF, <argument>] | [ATTRIBUTE_VALUE|ATTRIBUTE_VALUE_REF, <argument>],
+[STRING_END]
+```
 
 When a string in CSS contains an interpolation, e.g. `"hello, ${name}"`, the string should be split up into its values and
 value references. This is because compound values are unsuitable to represent strings, since all values and value references should be joined without a separating whitespace. Also how the references should be escaped changes for strings, due to their quotes.
@@ -422,13 +434,74 @@ value references. This is because compound values are unsuitable to represent st
 ```js
 [
   [STRING_START, '"'],
-    [VALUE, 'hello, '],
-    [VALUE_REF, name],
+    [VALUE|ATTRIBUTE, 'hello, '],
+    [VALUE_REF|ATTRIBUTE_VALUE_REF, name],
   [STRING_END]
 ]
 ```
 
 The quotes of the string will not be part of the values, but part of the `STRING_START` marker. When the ISTF is turned back into CSS, the quote will need to be escaped inside the value references.
+
+### Attribute selectors
+
+```
+[ATTRIBUTE_SELECTOR_START, <case-sensitive 1|2>],
+  [ATTRIBUTE_NAME|ATTRIBUTE_NAME_REF, <argument>],
+  (
+    [ATTRIBUTE_OPERATOR, <operator>],
+    [ATTRIBUTE_VALUE, <quoted string value>] | <compound string>,
+    [ATT, "i"|"I"]?
+  )?
+[ATTRIBUTE_SELECTOR_END]
+```
+
+For [Attribute Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors) a special syntax is used.
+They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nodes.
+
+```css
+[title]
+[href="https://example.org"]
+[href*="example"]
+[href*="example.${domain}"]
+[href*="example" i]
+```
+
+```js
+// The operator and value can both be left out to represent property-only attribute selectors
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "title"],
+[ATTRIBUTE_SELECTOR_END]
+
+// The operator goes into it's own node and the value goes into a third being a selector or selector ref node
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
+  [ATTRIBUTE_OPERATOR, "="],
+  [ATTRIBUTE_VALUE, `"https://example.org"`],
+[ATTRIBUTE_SELECTOR_END]
+
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [ATTRIBUTE_VALUE, `"example"`],
+[ATTRIBUTE_SELECTOR_END]
+
+// interpolations at the attribute selector's value are encoded as string compounds
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [STRING_START, '"'],
+    [ATTRIBUTE_VALUE, `example.`],
+    [ATTRIBUTE_VALUE_REF, domain],
+  [STRING_END],
+[ATTRIBUTE_SELECTOR_END]
+
+// switching to case-insensitive attribute matches is reflected as an additional selector node
+[ATTRIBUTE_SELECTOR_START, 2], /* note: the 2 stands for case-insensitive */
+  [ATTRIBUTE_NAME, "href"],
+  [ATTRIBUTE_OPERATOR, "*="],
+  [ATTRIBUTE_VALUE, `"example"`],
+[ATTRIBUTE_SELECTOR_END]
+```
 
 ### Conditionals
 
@@ -552,7 +625,7 @@ The quotes of the string will not be part of the values, but part of the `STRING
     [COMPOUND_SELECTOR_END],
     [PROPERTY, 'color'],
     [VALUE, 'red']
-  [RULE_END]  
+  [RULE_END]
 ]
 ```
 
@@ -580,19 +653,19 @@ The quotes of the string will not be part of the values, but part of the `STRING
       [VALUE, 100],
       [VALUE, 200],
       [VALUE, 50]
-    [FUNCTION_END],    
+    [FUNCTION_END],
     [PROPERTY, 'content'],
     [COMPOUND_VALUE_START],
       [FUNCTION_START, 'counter'],
         [VALUE, 'list-item']
-      [FUNCTION_END],     
+      [FUNCTION_END],
       [VALUE, '". "']
     [COMPOUND_VALUE_END],
     [PROPERTY, 'width'],
     [FUNCTION_START, 'calc'],
       [VALUE, '50% - 2em'],
     [FUNCTION_END],
-  [RULE_END]  
+  [RULE_END]
 ]
 ```
 
@@ -631,14 +704,14 @@ The quotes of the string will not be part of the values, but part of the `STRING
     [VALUE_REF, () => [
       [VALUE, 'green'],
       [VALUE, 'red']
-    ]],    
+    ]],
   [RULE_END],
   [PARTIAL_REF, () => [
     [RULE_START, 1],
       [SELECTOR, '.partial']
       [PROPERTY, 'color'],
       [VALUE, 'green'],
-    [RULE_END],    
+    [RULE_END],
   ]]
 ]
 ```
