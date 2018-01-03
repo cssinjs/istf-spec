@@ -424,7 +424,7 @@ body, .foo {
 
 ```
 [STRING_START, <quote>],
-  [VALUE|VALUE_REF, <argument>] | [SELECTOR|SELECTOR_REF, <argument>],
+  [VALUE|VALUE_REF, <argument>] | [ATTRIBUTE_VALUE|ATTRIBUTE_VALUE_REF, <argument>],
 [STRING_END]
 ```
 
@@ -434,8 +434,8 @@ value references. This is because compound values are unsuitable to represent st
 ```js
 [
   [STRING_START, '"'],
-    [VALUE|SELECTOR, 'hello, '],
-    [VALUE_REF|SELECTOR_REF, name],
+    [VALUE|ATTRIBUTE, 'hello, '],
+    [VALUE_REF|ATTRIBUTE_VALUE_REF, name],
   [STRING_END]
 ]
 ```
@@ -769,4 +769,3 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
   [RULE_END]
 ]
 ```
-
