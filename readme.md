@@ -64,8 +64,13 @@ const PARTIAL_REF = 24
 const STRING_START = 25
 const STRING_END = 26
 const ATTRIBUTE_SELECTOR_START = 27
-const ATTRIBUTE_OPERATOR = 28
-const ATTRIBUTE_SELECTOR_END = 29
+const ATTRIBUTE_SELECTOR_END = 28
+const ATTRIBUTE_NAME = 29
+const ATTRIBUTE_NAME_REF = 30
+const ATTRIBUTE_OPERATOR = 31
+const ATTRIBUTE_VALUE = 32
+const ATTRIBUTE_VALUE_REF = 33
+const CONDITION_REF = 34
 ```
 
 #### Rule start
@@ -331,7 +336,7 @@ Variable `ref` is an ISTF array or a function which returns an ISTF array.
       [SELECTOR, '.partial'],
       [PROPERTY, 'color'],
       [VALUE, 'green'],
-    [RULE_END],    
+    [RULE_END],
   ]]
 ]
 ```
@@ -440,12 +445,12 @@ The quotes of the string will not be part of the values, but part of the `STRING
 ### Attribute selectors
 
 ```
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR|SELECTOR_REF, <selector>],
+[ATTRIBUTE_SELECTOR_START, <case-sensitive 1|2>],
+  [ATTRIBUTE_NAME|ATTRIBUTE_NAME_REF, <argument>],
   (
     [ATTRIBUTE_OPERATOR, <operator>],
-    [SELECTOR, <string value>] | <compound string>,
-    [SELECTOR, "i"|"I"]?
+    [ATTRIBUTE_VALUE, <quoted string value>] | <compound string>,
+    [ATT, "i"|"I"]?
   )?
 [ATTRIBUTE_SELECTOR_END]
 ```
@@ -463,39 +468,38 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
 
 ```js
 // The operator and value can both be left out to represent property-only attribute selectors
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR, "title"],
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "title"],
 [ATTRIBUTE_SELECTOR_END]
 
 // The operator goes into it's own node and the value goes into a third being a selector or selector ref node
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR, "href"],
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
   [ATTRIBUTE_OPERATOR, "="],
-  [SELECTOR, `"https://example.org"`],
+  [ATTRIBUTE_VALUE, `"https://example.org"`],
 [ATTRIBUTE_SELECTOR_END]
 
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR, "href"],
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
   [ATTRIBUTE_OPERATOR, "*="],
-  [SELECTOR, `"example"`],
+  [ATTRIBUTE_VALUE, `"example"`],
 [ATTRIBUTE_SELECTOR_END]
 
 // interpolations at the attribute selector's value are encoded as string compounds
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR, "href"],
+[ATTRIBUTE_SELECTOR_START, 1],
+  [ATTRIBUTE_NAME, "href"],
   [ATTRIBUTE_OPERATOR, "*="],
   [STRING_START, '"'],
-    [SELECTOR, `example.`],
-    [SELECTOR_REF, domain],
+    [ATTRIBUTE_VALUE, `example.`],
+    [ATTRIBUTE_VALUE_REF, domain],
   [STRING_END],
 [ATTRIBUTE_SELECTOR_END]
 
 // switching to case-insensitive attribute matches is reflected as an additional selector node
-[ATTRIBUTE_SELECTOR_START],
-  [SELECTOR, "href"],
+[ATTRIBUTE_SELECTOR_START, 2], /* note: the 2 stands for case-insensitive */
+  [ATTRIBUTE_NAME, "href"],
   [ATTRIBUTE_OPERATOR, "*="],
-  [SELECTOR, `"example"`],
-  [SELECTOR, "i"],
+  [ATTRIBUTE_VALUE, `"example"`],
 [ATTRIBUTE_SELECTOR_END]
 ```
 
@@ -621,7 +625,7 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
     [COMPOUND_SELECTOR_END],
     [PROPERTY, 'color'],
     [VALUE, 'red']
-  [RULE_END]  
+  [RULE_END]
 ]
 ```
 
@@ -649,19 +653,19 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
       [VALUE, 100],
       [VALUE, 200],
       [VALUE, 50]
-    [FUNCTION_END],    
+    [FUNCTION_END],
     [PROPERTY, 'content'],
     [COMPOUND_VALUE_START],
       [FUNCTION_START, 'counter'],
         [VALUE, 'list-item']
-      [FUNCTION_END],     
+      [FUNCTION_END],
       [VALUE, '". "']
     [COMPOUND_VALUE_END],
     [PROPERTY, 'width'],
     [FUNCTION_START, 'calc'],
       [VALUE, '50% - 2em'],
     [FUNCTION_END],
-  [RULE_END]  
+  [RULE_END]
 ]
 ```
 
@@ -700,14 +704,14 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
     [VALUE_REF, () => [
       [VALUE, 'green'],
       [VALUE, 'red']
-    ]],    
+    ]],
   [RULE_END],
   [PARTIAL_REF, () => [
     [RULE_START, 1],
       [SELECTOR, '.partial']
       [PROPERTY, 'color'],
       [VALUE, 'green'],
-    [RULE_END],    
+    [RULE_END],
   ]]
 ]
 ```
@@ -765,3 +769,4 @@ They're delimited by `ATTRIBUTE_SELECTOR_START` and `ATTRIBUTE_SELECTOR_END` nod
   [RULE_END]
 ]
 ```
+
